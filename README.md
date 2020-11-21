@@ -1,18 +1,19 @@
 # Helmfile Deployment
 
 ### Table of content
-* [Install Helm](#Install-Helm)
-* [Blueprint Helm Charts](#Blueprint-Helm-Charts)
-  * [App Helm Chart](#App-Helm-Chart)
-  * [Postgres Helm chart](#Postgres-Helm-chart)
-  * [Ingress Helm Chart](#Ingress-Helm-Chart)
-* [Override Values.yaml for each Helm release](#Override-Values.yaml-for-each-Helm-release)
-* [Create Helm releases](#Create-Helm-releases)
-* [Maintanance](#Maintanance)
-* [References](#References)
 
+- [Install Helm](#Install-Helm)
+- [Blueprint Helm Charts](#Blueprint-Helm-Charts)
+  - [App Helm Chart](#App-Helm-Chart)
+  - [Postgres Helm chart](#Postgres-Helm-chart)
+  - [Ingress Helm Chart](#Ingress-Helm-Chart)
+- [Override Values.yaml for each Helm release](#Override-Values.yaml-for-each-Helm-release)
+- [Create Helm releases](#Create-Helm-releases)
+- [Maintanance](#Maintanance)
+- [References](#References)
 
 ## Install Helm
+
 Installing Helm - https://helm.sh/docs/intro/install/
 Installing Helmfile - https://github.com/roboll/helmfile#installation
 
@@ -36,15 +37,17 @@ Within this project there are 3 types of Helm charts, which will be used to depl
 
 ### App Helm Chart
 
-This is a basic Helm chart, necessary to deploy applications (*adminer*, *kanban-ui* & *kanban-app*). In order to run those apps in the Kubernetes cluster we need to create Deployment & Service for each one of them. This chart is taking care of that - it provides a template for doing that.
+This is a basic Helm chart, necessary to deploy applications (_adminer_, _kanban-ui_ & _kanban-app_). In order to run those apps in the Kubernetes cluster we need to create Deployment & Service for each one of them. This chart is taking care of that - it provides a template for doing that.
 
 It was created with following command:
+
 ```bash
 $ helm create app
 Creating app
 ```
 
 After cleaning the unncessary templates and adding files for Deployment & Service, the chart looks as follows:
+
 ```bash
 .
 ├── charts
@@ -66,7 +69,7 @@ app:
   container:
     image: add-image-here
     port: 8080
-    env: 
+    env:
       - key: key
         value: value
   service:
@@ -76,7 +79,7 @@ app:
 
 ### Postgres Helm chart
 
-This chart is used to create a PostgreSQL database and includes 4 types of Kubernetes objects: Deployment, Service, PersistentVolumeClaim & ConfigMap. 
+This chart is used to create a PostgreSQL database and includes 4 types of Kubernetes objects: Deployment, Service, PersistentVolumeClaim & ConfigMap.
 
 All templates and defualt `values.yaml` file is located in the `./postgres` folder:
 
@@ -95,7 +98,7 @@ All templates and defualt `values.yaml` file is located in the `./postgres` fold
 
 ### Ingress Helm Chart
 
-And the last chart, is responsible for creating and configurating Ingress Controller. 
+And the last chart, is responsible for creating and configurating Ingress Controller.
 
 It creates the default backend service - marked as `dependency` in `Chart.yaml`:
 
@@ -106,13 +109,13 @@ dependencies:
     repository: https://kubernetes-charts.storage.googleapis.com/
 ```
 
-And the configuration of Ingress Controller, which is made by combining of `/templates/ingress.yaml` and `values.yaml`. 
+And the configuration of Ingress Controller, which is made by combining of `/templates/ingress.yaml` and `values.yaml`.
 
 ## Override Values.yaml for each Helm release
 
 To create each Helm release, i.e. deploy each application, relevant YAML file was created and put in `./values.yaml`. E.g. `adminer.yaml` contains specific values, like base Docker image or name for Deployment.
 
-In the root folder (`./helmfile`) there is a `helmfile.yaml` which combines both charts and values into Helm releases. It's a master file that defines entire environment with all apps inside of it. 
+In the root folder (`./helmfile`) there is a `helmfile.yaml` which combines both charts and values into Helm releases. It's a master file that defines entire environment with all apps inside of it.
 
 ## Create Helm releases
 
@@ -126,113 +129,15 @@ Adding repo stable https://kubernetes-charts.storage.googleapis.com
 Updating repo
 Hang tight while we grab the latest from your chart repositories...
 ...Successfully got an update from the "stable" chart repository
-Update Complete. ⎈ Happy Helming!⎈ 
+Update Complete. ⎈ Happy Helming!⎈
 ```
 
 Then run `helm sync` command to deploy all apps (Helm releases defined in `helmfile.yaml`):
 
-```bash
-$ helmfile sync
-Adding repo stable https://kubernetes-charts.storage.googleapis.com
-"stable" has been added to your repositories
-
-Updating repo
-Hang tight while we grab the latest from your chart repositories...
-...Successfully got an update from the "stable" chart repository
-Update Complete. ⎈ Happy Helming!⎈ 
-
-Building dependency release=postgres, chart=charts/postgres
-Building dependency release=adminer, chart=charts/app
-Building dependency release=kanban-app, chart=charts/app
-Building dependency release=kanban-ui, chart=charts/app
-Building dependency release=ingress, chart=charts/ingress
-Hang tight while we grab the latest from your chart repositories...
-...Successfully got an update from the "stable" chart repository
-Update Complete. ⎈Happy Helming!⎈
-Saving 1 charts
-Downloading nginx-ingress from repo https://kubernetes-charts.storage.googleapis.com/
-Deleting outdated charts
-
-Affected releases are:
-  adminer (./charts/app) UPDATED
-  ingress (./charts/ingress) UPDATED
-  kanban-app (./charts/app) UPDATED
-  kanban-ui (./charts/app) UPDATED
-  postgres (./charts/postgres) UPDATED
-
-Upgrading release=postgres, chart=charts/postgres
-Upgrading release=adminer, chart=charts/app
-Upgrading release=kanban-ui, chart=charts/app
-Upgrading release=kanban-app, chart=charts/app
-Upgrading release=ingress, chart=charts/ingress
-Release "kanban-ui" does not exist. Installing it now.
-NAME: kanban-ui
-LAST DEPLOYED: Sat Apr 11 19:39:41 2020
-NAMESPACE: default
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-
-Listing releases matching ^kanban-ui$
-kanban-ui	default  	1       	2020-04-11 19:39:41.082768248 +0200 CEST	deployed	app-0.1.0	1.16.0     
-
-Release "kanban-app" does not exist. Installing it now.
-NAME: kanban-app
-LAST DEPLOYED: Sat Apr 11 19:39:41 2020
-NAMESPACE: default
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-
-Listing releases matching ^kanban-app$
-Release "adminer" does not exist. Installing it now.
-NAME: adminer
-LAST DEPLOYED: Sat Apr 11 19:39:41 2020
-NAMESPACE: default
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-
-Listing releases matching ^adminer$
-kanban-app	default  	1       	2020-04-11 19:39:41.115007764 +0200 CEST	deployed	app-0.1.0	1.16.0     
-
-Release "postgres" does not exist. Installing it now.
-NAME: postgres
-LAST DEPLOYED: Sat Apr 11 19:39:41 2020
-NAMESPACE: default
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-
-Listing releases matching ^postgres$
-adminer	default  	1       	2020-04-11 19:39:41.096703774 +0200 CEST	deployed	app-0.1.0	1.16.0     
-
-postgres	default  	1       	2020-04-11 19:39:41.104092113 +0200 CEST	deployed	postgres-0.1.0	1.16.0     
-
-Release "ingress" does not exist. Installing it now.
-NAME: ingress
-LAST DEPLOYED: Sat Apr 11 19:39:41 2020
-NAMESPACE: default
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-
-Listing releases matching ^ingress$
-ingress	default  	1       	2020-04-11 19:39:41.11613135 +0200 CEST	deployed	ingress-0.1.0	1.16.0     
-
-
-UPDATED RELEASES:
-NAME         CHART               VERSION
-kanban-ui    ./charts/app          0.1.0
-kanban-app   ./charts/app          0.1.0
-adminer      ./charts/app          0.1.0
-postgres     ./charts/postgres     0.1.0
-ingress      ./charts/ingress      0.1.0
-```
-
 ## Maintanance
 
 To get help about helmfile:
+
 ```bash
 $ helmfile help
 NAME:
@@ -285,4 +190,3 @@ GLOBAL OPTIONS:
 ## References
 
 https://github.com/roboll/helmfile
-
