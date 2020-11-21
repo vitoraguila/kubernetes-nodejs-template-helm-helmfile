@@ -1,0 +1,14 @@
+ingress:
+  hosts:
+    - host: adminer.k8s.com
+      paths:
+        - path: /
+          backend:
+            serviceName: srv-1
+            servicePort: 80
+    - host: kanban.k8s.com
+      paths:
+        - path: /
+          backend:
+            serviceName: srv-2
+            servicePort: 80

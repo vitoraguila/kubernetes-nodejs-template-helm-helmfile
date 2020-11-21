@@ -1,0 +1,13 @@
+apiVersion: v2
+name: app
+description: A Helm chart for any application
+type: application
+version: 0.1.0
+appVersion: 1.16.0
+keywords:
+  - app
+  - javascript
+home: https://github.com/
+maintainers:
+  - name: Vitor Águila
+    url: https://github.com/vitoraguila
